@@ -1,5 +1,5 @@
 
-# 第3章 JSONの構文解析
+# JSONの構文解析
 
 2章で構文解析に必要な基本概念について学ぶことができました。この章ではJSONという実際に使われている言語を題材に、より実践的な構文解析のやり方を学んでいきます。
 
@@ -7,7 +7,7 @@
 
 JSON（JavaScript Object Notation）は、WebサービスにアクセスするためのAPIで非常に一般的に使われているデータフォーマットです。また、企業内サービス間で連携するときにも非常によく使われます。皆さんは何らかの形でJSONに触れたことがあるのではないかと思います。
 
-JSONは元々は、JavaScriptのサブセットとして、オブジェクトに関する部分だけを切り出したものでしたが、現在はECMA-404[^1]で標準化されており、色々な言語でJSONを扱うライブラリがあります。また、JSONはデータ交換用フォーマットの中でも非常にシンプルであるという特徴があり、そのシンプルさ故か、同じ言語でもJSONを扱うライブラリが乱立する程です。今のWebアプリケーション開発に携わる開発者にとってJSONは避けて通れないといってよいでしょう。
+JSONは元々はJavaScriptのオブジェクトリテラル構文を参考にして設計されたデータ形式ですが、現在はECMA-404[^1]およびIETFの[RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259)で標準化されており、色々な言語でJSONを扱うライブラリがあります。なお、JSONはJavaScriptの厳密な部分集合ではなく、両者の仕様は別々に管理されている独立した規格です（U+2028/U+2029の扱いなど、歴史的に細かな差異がありました）。また、JSONはデータ交換用フォーマットの中でも非常にシンプルであるという特徴があり、そのシンプルさ故か、同じ言語でもJSONを扱うライブラリが乱立する程です。今のWebアプリケーション開発に携わる開発者にとってJSONは避けて通れないといってよいでしょう。
  
 以降では簡単なJSONのサンプルを通してJSONの概要を説明します。
 
@@ -142,7 +142,7 @@ value = true | false | null | number | string | object | array;
 object = LBRACE RBRACE | LBRACE pair {COMMA pair} RBRACE;
 pair = string COLON value;
 array = LBRACKET RBRACKET | LBRACKET value {COMMA value} RBRACKET ;
-string = ("\"\"" | "\"" {CHAR} "\"") ws;
+string = "\"" {CHAR} "\"" ws;
 number = INT ws;
 true = "true" ws;
 false = "false" ws;
@@ -285,7 +285,7 @@ array = LBRACKET RBRACKET | LBRACKET value {COMMA value} RBRACKET ;
 ["foo"]
 ```
 
-しかし、以下のテキストは、`array`に当てはまらず、エラーになります。`{COMMA pair}`とあるように、カンマは必ず後ろに`value`を必要とするからです。
+しかし、以下のテキストは、`array`に当てはまらず、エラーになります。`{COMMA value}`とあるように、カンマは必ず後ろに`value`を必要とするからです。
 
 ```js
 [1,] // ,で終わっている
@@ -352,7 +352,7 @@ number = INT ws;
 `string`は文字列リテラルを表す規則です。
 
 ```text
-string = ("\"\"" | "\"" CHAR+ "\"") ws;
+string = "\"" {CHAR} "\"" ws;
 ```
 
 `"`で始まって、`CHAR`で定義される文字が0個以上続いて、 `"` で終わります。`CHAR`の定義はBNF中に含まれており、ダブルクォーテーションとバックスラッシュを除く印字可能文字を表しています。なお、簡単のため本章ではエスケープシーケンスは扱いません。
@@ -419,7 +419,7 @@ public interface JsonAst {
     record JsonNumber(double value) implements JsonValue {
         @Override
         public String toString() {
-            return "JsonNumber(" + value + '}';
+            return "JsonNumber(" + value + ')';
         }
     }
     
@@ -672,18 +672,18 @@ public class PegJsonParser implements JsonParser {
     private JsonAst.JsonValue parseValue() {
         int backup = cursor;
         try {
-            return parseTrue();
+            return parseString();
         } catch (ParseException e) {
             cursor = backup;
         }
 
         try {
-            return parseFalse();
+            return parseNumber();
         } catch (ParseException e) {
             cursor = backup;
         }
-        // parseNull(), parseNumber(), parseString(), 
-        // parseObject(), parseArray() と続く...
+        // parseObject(), parseArray(),
+        // parseTrue(), parseFalse(), parseNull() と続く...
     }
 ```
 
@@ -691,13 +691,13 @@ public class PegJsonParser implements JsonParser {
 
 `|`は「または」を意味するので、「valueは、trueまたはfalseまたはnullまたは...」という意味になります。このコードでは、それぞれの可能性を順番に試していきます。
 
-1. まず`parseTrue()`を試し、失敗したらカーソルを元に戻す
-2. 次に`parseFalse()`を試し、失敗したらカーソルを元に戻す
+1. まず`parseString()`を試し、失敗したらカーソルを元に戻す
+2. 次に`parseNumber()`を試し、失敗したらカーソルを元に戻す
 3. 以下同様に続く...
 
 このように、失敗したら元の位置に戻って別の可能性を試すことを「バックトラック」と呼びます。
 
-ちなみに、この順番は重要です。`value`の例では右辺がそれぞれ排他的なので問題ありませんが、順番を変えると結果が変わってしまうことがあります。
+なお、この順番自体は本実装では結果に影響しません。JSONの`value`では候補同士が先頭文字で互いに区別できる（`"`なら`string`、数字なら`number`、`{`なら`object`……）ため、どの順番で試しても同じ結果になります。ただし、後で出てくるPEGの`|`（順序付き選択）一般では「先に書いた候補が優先される」ので、順番を変えると結果が変わることがある、という点は覚えておくとよいでしょう。
 
 ### trueの構文解析メソッド
 
@@ -825,7 +825,6 @@ private JsonAst.JsonNull parseNull() {
                     throw new ParseException(
                         "escape sequences are not supported in this parser"
                     );
-                    break;
                 case '"':
                     cursor++;
                     break OUTER;
@@ -876,7 +875,6 @@ private JsonAst.JsonNull parseNull() {
             skipWhitespace();
             return new JsonAst.JsonString(builder.toString());
         }
-        throw new RuntimeException("never reach here");
 ```
 
 というチェックを入れることによって、ダブルクォートで文字列が終端している事を確認した後、空白を読み飛ばしています。
@@ -1076,7 +1074,9 @@ pair = string COLON value;
 2. **順序付き選択**：`|`で区切られた選択肢を左から順番に試す
 3. **文字列を直接解析**：特別な前処理なしに、入力文字列をそのまま解析する
 
-このような構文解析の手法を**PEG（Parsing Expression Grammar、解析表現文法）**と呼びます。PEGは2004年に提案された比較的新しい手法で、プログラミング言語のような「曖昧さがない」言語の解析に適しています。最近ではPython（バージョン3.9以降）もPEGベースの構文解析器を使っています。
+このような構文解析の手法を**PEG（Parsing Expression Grammar、解析表現文法）**と呼びます。PEGは2004年に提案された比較的新しい手法で、プログラミング言語のような「曖昧さがない」言語の解析に適しています。最近ではPython（バージョン3.9以降）もPEGベースの構文解析器を使っています[^pep617]。
+
+[^pep617]: PythonにおけるPEGパーサ採用の経緯と理由は [PEP 617 -- New PEG parser for CPython](https://peps.python.org/pep-0617/) で詳しく説明されています。
 
 厳密にはPEG自体はBNFと異なる文法の定義方法（形式文法）ですが、PEG自体が「どのように解析されるか」を定義するため、ここではPEG自体を構文解析の手法として扱います。この点については第5章で詳しく解説します。
 
