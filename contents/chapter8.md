@@ -59,7 +59,7 @@
 - Bryan Ford, "Parsing Expression Grammars: A Recognition-Based Syntactic Foundation", 2004
   - コメント: PEGを提案したオリジナルの論文。PEGの形式的な定義、操作的意味論、Packrat Parsingについて解説。理論的な背景を深く理解したい方向け。 (オンラインで検索すれば見つかるはずです)
 - Terence Parr, *The Definitive ANTLR 4 Reference*
-  - コメント: ANTLR v4の作者自身による解説書。ANTLRの文法定義、使い方、ALL(*)アルゴリズムの概要、実践的なパーサー構築のテクニックが豊富。ANTLRを使いこなしたいなら必読。
+  - コメント: ANTLR v4の作者自身による解説書。ANTLRの文法定義、使い方、`ALL(*)`アルゴリズムの概要、実践的なパーサー構築のテクニックが豊富。ANTLRを使いこなしたいなら必読。
 - ANTLR公式サイト、https://www.antlr.org/
   - コメント: ANTLRのドキュメント、チュートリアル、文法リポジトリなど。最新情報やコミュニティのサポートも得られます。
 - JavaCC公式サイト、https://javacc.github.io/javacc/

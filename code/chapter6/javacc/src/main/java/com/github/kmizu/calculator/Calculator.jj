@@ -1,6 +1,6 @@
 options {
   STATIC = false;
-  JDK_VERSION = "17";
+  JDK_VERSION = "21";
 }
 
 PARSER_BEGIN(Calculator)
@@ -8,7 +8,7 @@ package com.github.kmizu.calculator;
 public class Calculator {
   public static void main(String[] args) throws ParseException {
     Calculator parser = new Calculator(System.in);
-    parser.start();
+    System.out.println(parser.start());
   }
 }
 PARSER_END(Calculator)
@@ -23,7 +23,13 @@ TOKEN : {
 | <RPAREN: ")">
 | <INTEGER: (["0"-"9"])+>
 }
-o
+
+public int start() :
+{int r = 0;}
+{
+  r=add() { return r; }
+}
+
 public int expression() :
 {int r = 0;}
 {
@@ -42,7 +48,7 @@ public int add() :
 public int mult() :
 {int r = 0; int v = 0;}
 {
-    r=primary() ( <MULTIPLY> v=primary() { r *= v; }| <DIVIDE> r=primary() { r /= v; })* {
+    r=primary() ( <MULTIPLY> v=primary() { r *= v; }| <DIVIDE> v=primary() { r /= v; })* {
         return r;
     }
 }
@@ -51,7 +57,7 @@ public int primary() :
 {int r = 0; Token t = null;}
 {
 (
-  <LPAREN> r=expression() <RPAREN>
+  <LPAREN> r=add() <RPAREN>
 | t=<INTEGER> { r = Integer.parseInt(t.image); }
 ) { return r; }
 }
