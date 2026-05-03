@@ -491,8 +491,9 @@ a{n,m}   n回以上m回以下の繰り返し
 \path (q3) edge[loop above] node {100円/返却} (q3);
 
 % 商品ボタンによる遷移
-\path (q1) edge[bend right] node[below] {ボタン/不足} (q0);
-\path (q2) edge[bend right=40] node[below] {ボタン/商品} (q0);
+\path (q0) edge[loop below] node {ボタン/不足} (q0);
+\path (q1) edge[bend right] node[below] {ボタン/商品} (q0);
+\path (q2) edge[bend right=40] node[below] {ボタン/商品+釣} (q0);
 \path (q3) edge[bend right=50] node[below] {ボタン/商品+釣} (q0);
 
 \end{tikzpicture}

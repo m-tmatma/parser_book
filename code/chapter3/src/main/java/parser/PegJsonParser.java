@@ -63,30 +63,6 @@ public class PegJsonParser implements JsonParser {
     private Ast.JsonValue parseValue() {
         int backup = cursor;
         try {
-            return parseString();
-        } catch (ParseException e) {
-            cursor = backup;
-        }
-
-        try {
-            return parseNumber();
-        } catch (ParseException e) {
-            cursor = backup;
-        }
-
-        try {
-            return parseObject();
-        } catch (ParseException e) {
-            cursor = backup;
-        }
-
-        try {
-            return parseArray();
-        } catch (ParseException e) {
-            cursor = backup;
-        }
-
-        try {
             return parseTrue();
         } catch (ParseException e) {
             cursor = backup;
@@ -98,7 +74,31 @@ public class PegJsonParser implements JsonParser {
             cursor = backup;
         }
 
-        return parseNull();
+        try {
+            return parseNull();
+        } catch (ParseException e) {
+            cursor = backup;
+        }
+
+        try {
+            return parseNumber();
+        } catch (ParseException e) {
+            cursor = backup;
+        }
+
+        try {
+            return parseString();
+        } catch (ParseException e) {
+            cursor = backup;
+        }
+
+        try {
+            return parseObject();
+        } catch (ParseException e) {
+            cursor = backup;
+        }
+
+        return parseArray();
     }
 
     private Ast.JsonTrue parseTrue() {

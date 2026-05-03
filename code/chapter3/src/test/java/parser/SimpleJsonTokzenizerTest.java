@@ -194,6 +194,9 @@ public class SimpleJsonTokzenizerTest {
         assertEquals(1, t.current().value);
 
         t.moveNext();
+        assertEquals(Token.Type.COMMA, t.current().type);
+
+        t.moveNext();
         assertEquals(Token.Type.TRUE, t.current().type);
 
         t.moveNext();
