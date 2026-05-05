@@ -36,6 +36,7 @@
 
 - [LuaLaTeX](https://www.luatex.org/) (TeX Live 2022以上推奨)
 - BibTeX
+- upmendex (日本語索引用)
 - 日本語フォント (Noto CJK フォント推奨)
 
 Dockerを使う場合、ローカルにTeX Liveや日本語フォントを直接インストールする必要はありません。
@@ -94,3 +95,19 @@ vim tex/contents/chapter1.tex
 # PDFを生成
 ./build_pdf.sh
 ```
+
+## 索引
+
+索引はLaTeX標準の `makeidx` で `build/parser_book.idx` を出力し、
+`upmendex` で日本語対応の `build/parser_book.ind` に変換します。
+`./build_pdf.sh` はこの手順を自動で実行します。
+
+本文に索引用語を追加する場合は、該当箇所の近くに以下のように書きます。
+
+```tex
+\index{こうぶんかいせき@構文解析}
+\index{PEG}
+\index{ぱーさーこんびねーた@パーサーコンビネータ}
+```
+
+日本語の用語は `読み@表示名` の形にすると、索引の並びが安定します。

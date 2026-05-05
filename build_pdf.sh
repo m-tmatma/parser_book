@@ -30,6 +30,15 @@ check_bibtex() {
     fi
 }
 
+# upmendex依存関係チェック
+check_upmendex() {
+    if ! command -v upmendex &> /dev/null; then
+        echo "❌ upmendexがインストールされていません"
+        echo "インストール方法: sudo apt-get install texlive-lang-japanese (Ubuntu/Debian)"
+        exit 1
+    fi
+}
+
 # Docker依存関係チェック
 check_docker() {
     if ! command -v docker &> /dev/null; then
@@ -43,6 +52,7 @@ check_dependencies() {
     echo "🔍 依存関係をチェックしています..."
     check_lualatex
     check_bibtex
+    check_upmendex
     echo "✅ 依存関係OK"
 }
 
@@ -54,6 +64,12 @@ run_lualatex() {
         -jobname=parser_book \
         -output-directory="$BUILD_DIR" \
         "$TEX_MAIN"
+}
+
+run_upmendex() {
+    if [ -f "$BUILD_DIR/parser_book.idx" ]; then
+        (cd "$BUILD_DIR" && upmendex -q -g -f -o parser_book.ind parser_book.idx)
+    fi
 }
 
 # TeXソースからLuaLaTeXでPDFを生成
@@ -69,6 +85,8 @@ build_pdf() {
 
     run_lualatex
     (cd "$BUILD_DIR" && bibtex parser_book)
+    run_lualatex
+    run_upmendex
     run_lualatex
     run_lualatex
 

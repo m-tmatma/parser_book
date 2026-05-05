@@ -176,6 +176,8 @@
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
+\usepackage{makeidx}
+\makeindex
 % hyperref
 \usepackage{hyperref}
 \hypersetup{
@@ -189,6 +191,7 @@
 
 \title{構文解析のしくみ}
 \renewcommand{\bibname}{参考文献}
+\renewcommand{\indexname}{索引}
 \usepackage{etoolbox}
 \makeatletter
 \providecommand{\subtitle}[1]{% add subtitle to \maketitle
