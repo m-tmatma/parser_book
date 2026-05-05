@@ -1,6 +1,6 @@
 package com.github.kmizu.jcomb;
 
-import jdk.jfr.Description;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static com.github.kmizu.jcomb.JComb.*;
@@ -83,7 +83,7 @@ public class JCombMathematicalExpressionTest {
     JParser<Integer> number = regex("[0-9]+").map(Integer::parseInt);
 
     @Test
-    @Description("1+2*3")
+    @DisplayName("1+2*3")
     public void testExpression() {
         assertEquals(new Result<>(7, ""), expression().parse("1+2*3"));
     }

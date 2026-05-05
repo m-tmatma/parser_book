@@ -5,7 +5,7 @@
 %%
 [0-9]+      { yylval = atoi(yytext); return NUM; }
 [-+*/()]    { return yytext[0]; }
-[ \t]       { /* ignore whitespce */ }
+[ \t]       { /* ignore whitespace */ }
 "\r\n"      { return EOL; }
 "\r"        { return EOL; }
 "\n"        { return EOL; }
