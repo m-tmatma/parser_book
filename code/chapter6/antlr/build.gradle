@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'antlr'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antlr('org.antlr:antlr4:4.3')
+    implementation('org.antlr:antlr4-runtime:4.3')
+    testImplementation('org.junit.jupiter:junit-jupiter:5.10.2')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+}
+
+sourceSets {
+    main {
+        antlr {
+            srcDirs = ['src/main/antlr4']
+        }
+        java {
+            srcDir("$buildDir/generated/sources/antlr/main")
+        }
+    }
+}
+
+tasks.named('generateGrammarSource') {
+    arguments += ['-package', 'com.github.asciidwango.parser_book.ch5']
+    outputDirectory = file("$buildDir/generated/sources/antlr/main")
+}
+
+test {
+    useJUnitPlatform()
+}
