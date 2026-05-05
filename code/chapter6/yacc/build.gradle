@@ -1,0 +1,29 @@
+plugins {
+    id 'base'
+}
+
+tasks.register('buildParser', Exec) {
+    commandLine 'make', 'all'
+    inputs.files('Makefile', 'calculator.y', 'token.l')
+    outputs.file('parser')
+}
+
+tasks.register('smokeTest') {
+    dependsOn(tasks.named('buildParser'))
+    inputs.file('parser')
+    doLast {
+        def process = new ProcessBuilder('sh', '-c', 'echo "1 + 2 * 3" | ./parser')
+            .directory(projectDir)
+            .redirectErrorStream(true)
+            .start()
+        def output = process.inputStream.text
+        def exitCode = process.waitFor()
+        if (exitCode != 0 || !output.contains('Result: 7')) {
+            throw new GradleException("Unexpected parser output: ${output}")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn(tasks.named('smokeTest'))
+}

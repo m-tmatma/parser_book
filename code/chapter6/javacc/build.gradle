@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    javacc
+}
+
+dependencies {
+    javacc('net.java.dev.javacc:javacc:7.0.13')
+    testImplementation('org.junit.jupiter:junit-jupiter:5.10.2')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+}
+
+def grammarFile = file('src/main/java/com/github/kmizu/calculator/Calculator.jj')
+def generatedJavaccDir = layout.buildDirectory.dir('generated/sources/javacc/main')
+
+tasks.register('generateJavacc', JavaExec) {
+    classpath = configurations.javacc
+    mainClass = 'org.javacc.parser.Main'
+    args = [
+        "-OUTPUT_DIRECTORY=${generatedJavaccDir.get().asFile.absolutePath}",
+        grammarFile.absolutePath
+    ]
+    inputs.file(grammarFile)
+    outputs.dir(generatedJavaccDir)
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir(generatedJavaccDir)
+        }
+    }
+}
+
+tasks.named('compileJava') {
+    dependsOn(tasks.named('generateJavacc'))
+}
+
+test {
+    useJUnitPlatform()
+}

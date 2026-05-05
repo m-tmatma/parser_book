@@ -11,17 +11,22 @@ permissions:
 
 jobs:
   gradle:
-    name: Gradle (${{ matrix.chapter }} / Java ${{ matrix.java }})
+    name: Gradle (${{ matrix.project }} / Java ${{ matrix.java }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        chapter: [chapter3, chapter5]
+        project:
+          - chapter3
+          - chapter5
+          - chapter6:antlr
+          - chapter6:javacc
+          - chapter6:jcomb
         # 本書はJava 21を基準としつつJava 25での動作も保証したいので、両方で回す
         java: ['21', '25']
     defaults:
       run:
-        working-directory: code/${{ matrix.chapter }}
+        working-directory: code
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK ${{ matrix.java }}
@@ -29,63 +34,29 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ matrix.chapter }}-java${{ matrix.java }}-${{ hashFiles(format('code/{0}/**/*.gradle*', matrix.chapter), format('code/{0}/gradle/wrapper/gradle-wrapper.properties', matrix.chapter)) }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-${{ matrix.chapter }}-java${{ matrix.java }}-
+          cache: gradle
       - name: Run tests
-        run: ./gradlew test --no-daemon
-
-  maven:
-    name: Maven (chapter6/${{ matrix.project }} / Java ${{ matrix.java }})
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        project: [antlr, javacc, jcomb]
-        java: ['21', '25']
-    defaults:
-      run:
-        working-directory: code/chapter6/${{ matrix.project }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK ${{ matrix.java }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ matrix.java }}
-          cache: maven
-      - name: Run tests
-        run: |
-          if [ -x ./mvnw ]; then
-            ./mvnw -B test
-          else
-            mvn -B test
-          fi
+        run: ./gradlew :${{ matrix.project }}:test --no-daemon
 
   yacc:
     name: yacc/flex (chapter6/yacc)
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: code/chapter6/yacc
+        working-directory: code
     steps:
       - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
       - name: Install bison, flex and byacc
         # Makefileがyacc/flex/Cコンパイラに依存している。ubuntuのbisonには
         # yaccコマンドが含まれないので、別途byacc（BSD yacc）を入れる
         run: |
           sudo apt-get update
           sudo apt-get install -y bison flex byacc
-      - name: Build
-        run: make all
-      - name: Smoke test
-        run: |
-          output=$(echo "1 + 2 * 3" | ./parser)
-          echo "$output"
-          echo "$output" | grep -q "Result: 7"
+      - name: Run smoke test
+        run: ./gradlew :chapter6:yacc:check --no-daemon

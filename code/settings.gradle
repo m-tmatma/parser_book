@@ -1,0 +1,8 @@
+rootProject.name = 'parser-book-samples'
+
+include 'chapter3'
+include 'chapter5'
+include 'chapter6:antlr'
+include 'chapter6:javacc'
+include 'chapter6:jcomb'
+include 'chapter6:yacc'
