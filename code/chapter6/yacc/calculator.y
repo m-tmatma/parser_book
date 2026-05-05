@@ -14,9 +14,18 @@ extern int yylval;
 
 %%
 
-input : expr EOL
+input :
+      | input line
+      ;
+
+line : expr EOL
       {
         printf("Result: %d\n", $1);
+      }
+      | EOL
+      | error EOL
+      {
+        yyerrok;
       }
       ;
 
@@ -41,6 +50,7 @@ expr : NUM
         if ($3 == 0)
         {
           yyerror("Cannot divide by zero.");
+          YYERROR;
         }
         else
         {
@@ -68,4 +78,3 @@ int main()
 {
   yyparse();
 }
-
